@@ -2,6 +2,8 @@
 
 /**
  * GSAP Live Animation Debugger/Monitor for Webflow Projects
+ * Version: 1.0.1 (Semantic Versioning: MAJOR.MINOR.PATCH)
+ * - Incremented patch for bug fix (modal resizing) and styling changes.
  *
  * This script provides an on-screen overlay debugger to help Webflow developers
  * monitor and troubleshoot GSAP animations and ScrollTrigger states in real-time.
@@ -70,39 +72,37 @@
             debuggerContainer.id = 'gsap-debugger-overlay';
 
             // Apply inline CSS for positioning, appearance, and interactivity
-            // Using Webflow-friendly fonts and high z-index
+            // Updated: Dark grey background, white text, subtle white shadow.
+            // Removed: 'resize: both' to prevent unintended resizing on mouse move.
             debuggerContainer.style.cssText = `
                 position: fixed;
                 top: 10px;
                 right: 10px;
-                background: rgba(0, 0, 0, 0.9);
-                color: #0f0;
+                background: rgba(40, 40, 40, 0.95); /* Dark grey background */
+                color: #ffffff; /* White text */
                 font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
                 font-size: 13px;
                 padding: 15px;
                 border-radius: 8px;
                 z-index: 999999; /* Ensure it's always on top */
-                max-width: 340px;
+                width: 340px; /* Fixed width */
                 max-height: 90vh;
-                overflow: auto; /* Allows content to scroll if it exceeds max-height */
-                box-shadow: 0 0 20px rgba(0, 255, 0, 0.6); /* Green glowing effect */
-                resize: both; /* Allows the user to resize the debugger panel */
-                min-width: 200px;
-                min-height: 100px;
+                overflow-y: auto; /* Allows content to scroll if it exceeds max-height */
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); /* Subtle white glowing effect */
                 display: flex;
                 flex-direction: column; /* Stacks children vertically */
             `;
 
             // Inner HTML structure of the debugger
             debuggerContainer.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #333;">
-                    <h4 style="margin: 0; color: #0f0; font-size: 16px;">GSAP Debugger</h4>
-                    <button id="gsap-debugger-toggle" style="background: rgba(0, 255, 0, 0.2); border: 1px solid #0f0; color: #0f0; padding: 4px 10px; cursor: pointer; border-radius: 4px; font-size: 12px; transition: background 0.2s, color 0.2s;">ON</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #555;">
+                    <h4 style="margin: 0; color: #ffffff; font-size: 16px;">GSAP Debugger</h4>
+                    <button id="gsap-debugger-toggle" style="background: rgba(255, 255, 255, 0.1); border: 1px solid #777; color: #ffffff; padding: 4px 10px; cursor: pointer; border-radius: 4px; font-size: 12px; transition: background 0.2s, color 0.2s, border-color 0.2s;">ON</button>
                 </div>
                 <div id="gsap-debugger-content" style="flex-grow: 1; overflow-y: auto;">
                     <p style="margin: 0 0 5px 0;">GSAP: ${gsapAvailable ? 'Detected (v' + (gsap.version || 'Unknown') + ')' : 'Not Found'}</p>
                     <p style="margin: 0 0 10px 0;">ScrollTrigger: ${scrollTriggerAvailable ? 'Detected' : 'Not Found'}</p>
-                    <hr style="border: none; border-top: 1px dashed #333; margin: 10px 0;">
+                    <hr style="border: none; border-top: 1px dashed #555; margin: 10px 0;">
 
                     <div id="gsap-debugger-menu" style="margin-bottom: 15px;">
                         <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
@@ -139,11 +139,13 @@
             const updateToggleButton = () => {
                 if (debuggerEnabled) {
                     toggleButton.textContent = 'ON';
-                    toggleButton.style.backgroundColor = 'rgba(0, 255, 0, 0.4)'; // Green for ON
+                    toggleButton.style.backgroundColor = 'rgba(0, 150, 0, 0.4)'; // Darker green for ON
+                    toggleButton.style.borderColor = '#00a000'; // Green border
                     debuggerContainer.style.display = 'flex'; // Show the debugger
                 } else {
                     toggleButton.textContent = 'OFF';
-                    toggleButton.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; // Red for OFF
+                    toggleButton.style.backgroundColor = 'rgba(150, 0, 0, 0.2)'; // Darker red for OFF
+                    toggleButton.style.borderColor = '#a00000'; // Red border
                     debuggerContainer.style.display = 'none'; // Hide the debugger
                 }
             };
@@ -272,7 +274,7 @@
             } else {
                 activeAnimations.forEach((props, tween) => {
                     const target = tween.targets()[0]; // Get the primary target element of the tween
-                    animHTML += `<div style="margin-bottom: 8px; padding: 5px; border: 1px solid #222; border-radius: 4px;">
+                    animHTML += `<div style="margin-bottom: 8px; padding: 5px; border: 1px solid #444; border-radius: 4px;">
                                     <strong>Target: ${getElementIdentifier(target)}</strong>`;
                     for (const key in props) {
                         animHTML += `<p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">${formatProperty(key, props[key])}</p>`;
@@ -288,12 +290,12 @@
                 timelineHTML += '<p>No active timelines.</p>';
             } else {
                 activeTimelines.forEach((props, timeline) => {
-                    timelineHTML += `<div style="margin-bottom: 8px; padding: 5px; border: 1px solid #222; border-radius: 4px;">
+                    timelineHTML += `<div style="margin-bottom: 8px; padding: 5px; border: 1px solid #444; border-radius: 4px;">
                                         <strong>Timeline: ${timeline.vars.id || 'Unnamed'}</strong>`; // Use id if set, else 'Unnamed'
                     for (const key in props) {
                         timelineHTML += `<p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">${formatProperty(key, props[key])}</p>`;
                     }
-                    timelineHTML += `</div>`;
+                    animHTML += `</div>`;
                 });
             }
             ui.timelineDiv.innerHTML = timelineHTML;
@@ -304,7 +306,7 @@
                 stHTML += '<p>No active ScrollTriggers.</p>';
             } else {
                 activeScrollTriggers.forEach((props, st) => {
-                    stHTML += `<div style="margin-bottom: 8px; padding: 5px; border: 1px solid #222; border-radius: 4px;">
+                    stHTML += `<div style="margin-bottom: 8px; padding: 5px; border: 1px solid #444; border-radius: 4px;">
                                 <strong>Trigger: ${getElementIdentifier(st.trigger)}</strong><br>
                                 Scroller: ${getElementIdentifier(st.scroller)}
                                 <p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">Progress: ${props.currentProgress}</p>
