@@ -2,8 +2,11 @@
 
 /**
  * GSAP Live Animation Debugger/Monitor for Webflow Projects
- * Version: 1.0.2 (Semantic Versioning: MAJOR.MINOR.PATCH)
- * - Incremented patch for adding debugger version number to the overlay UI.
+ * Version: 1.0.3 (Semantic Versioning: MAJOR.MINOR.PATCH)
+ * - Incremented patch for:
+ * - Fixing appearance issues by adding !important to key debugger styles.
+ * - Mitigating animation interference by using gsap.getProperty() for current values
+ * and showing target values for other CSS properties instead of costly getComputedStyle() on every frame.
  *
  * This script provides an on-screen overlay debugger to help Webflow developers
  * monitor and troubleshoot GSAP animations and ScrollTrigger states in real-time.
@@ -28,7 +31,7 @@
 (function() {
     // --- Configuration and Persistence ---
     // Define the current version of the debugger
-    const DEBUGGER_VERSION = "1.0.2"; // Added debugger version constant
+    const DEBUGGER_VERSION = "1.0.3"; // Updated debugger version constant
 
     // URL parameter to activate/deactivate the debugger
     const DEBUGGER_PARAM = 'gsapdbug';
@@ -75,53 +78,52 @@
             debuggerContainer.id = 'gsap-debugger-overlay';
 
             // Apply inline CSS for positioning, appearance, and interactivity
-            // Updated: Dark grey background, white text, subtle white shadow.
-            // Removed: 'resize: both' to prevent unintended resizing on mouse move.
+            // IMPORTANT: Using !important to ensure styles override site's CSS
             debuggerContainer.style.cssText = `
-                position: fixed;
-                top: 10px;
-                right: 10px;
-                background: rgba(40, 40, 40, 0.95); /* Dark grey background */
-                color: #ffffff; /* White text */
-                font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-                font-size: 13px;
-                padding: 15px;
-                border-radius: 8px;
-                z-index: 999999; /* Ensure it's always on top */
-                width: 340px; /* Fixed width */
-                max-height: 90vh;
-                overflow-y: auto; /* Allows content to scroll if it exceeds max-height */
-                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); /* Subtle white glowing effect */
-                display: flex;
-                flex-direction: column; /* Stacks children vertically */
+                position: fixed !important;
+                top: 10px !important;
+                right: 10px !important;
+                background: rgba(40, 40, 40, 0.95) !important; /* Dark grey background */
+                color: #ffffff !important; /* White text */
+                font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+                font-size: 13px !important;
+                padding: 15px !important;
+                border-radius: 8px !important;
+                z-index: 999999 !important; /* Ensure it's always on top */
+                width: 340px !important; /* Fixed width */
+                max-height: 90vh !important;
+                overflow-y: auto !important; /* Allows content to scroll if it exceeds max-height */
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3) !important; /* Subtle white glowing effect */
+                display: flex !important;
+                flex-direction: column !important; /* Stacks children vertically */
             `;
 
             // Inner HTML structure of the debugger
             debuggerContainer.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #555;">
-                    <h4 style="margin: 0; color: #ffffff; font-size: 16px;">GSAP Debugger <span style="font-size: 10px; color: #aaa;">v${DEBUGGER_VERSION}</span></h4>
-                    <button id="gsap-debugger-toggle" style="background: rgba(255, 255, 255, 0.1); border: 1px solid #777; color: #ffffff; padding: 4px 10px; cursor: pointer; border-radius: 4px; font-size: 12px; transition: background 0.2s, color 0.2s, border-color 0.2s;">ON</button>
+                <div style="display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 12px !important; padding-bottom: 8px !important; border-bottom: 1px dashed #555 !important;">
+                    <h4 style="margin: 0 !important; color: #ffffff !important; font-size: 16px !important;">GSAP Debugger <span style="font-size: 10px !important; color: #aaa !important;">v${DEBUGGER_VERSION}</span></h4>
+                    <button id="gsap-debugger-toggle" style="background: rgba(255, 255, 255, 0.1) !important; border: 1px solid #777 !important; color: #ffffff !important; padding: 4px 10px !important; cursor: pointer !important; border-radius: 4px !important; font-size: 12px !important; transition: background 0.2s, color 0.2s, border-color 0.2s !important;">ON</button>
                 </div>
-                <div id="gsap-debugger-content" style="flex-grow: 1; overflow-y: auto;">
-                    <p style="margin: 0 0 5px 0;">GSAP: ${gsapAvailable ? 'Detected (v' + (gsap.version || 'Unknown') + ')' : 'Not Found'}</p>
-                    <p style="margin: 0 0 10px 0;">ScrollTrigger: ${scrollTriggerAvailable ? 'Detected' : 'Not Found'}</p>
-                    <hr style="border: none; border-top: 1px dashed #555; margin: 10px 0;">
+                <div id="gsap-debugger-content" style="flex-grow: 1 !important; overflow-y: auto !important;">
+                    <p style="margin: 0 0 5px 0 !important;">GSAP: ${gsapAvailable ? 'Detected (v' + (gsap.version || 'Unknown') + ')' : 'Not Found'}</p>
+                    <p style="margin: 0 0 10px 0 !important;">ScrollTrigger: ${scrollTriggerAvailable ? 'Detected' : 'Not Found'}</p>
+                    <hr style="border: none !important; border-top: 1px dashed #555 !important; margin: 10px 0 !important;">
 
-                    <div id="gsap-debugger-menu" style="margin-bottom: 15px;">
-                        <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
-                            <input type="checkbox" id="menu-core-animations" checked style="margin-right: 8px; transform: scale(1.2);"> Core Animations
+                    <div id="gsap-debugger-menu" style="margin-bottom: 15px !important;">
+                        <label style="display: flex !important; align-items: center !important; margin-bottom: 8px !important; cursor: pointer !important;">
+                            <input type="checkbox" id="menu-core-animations" checked style="margin-right: 8px !important; transform: scale(1.2) !important;"> Core Animations
                         </label>
-                        <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
-                            <input type="checkbox" id="menu-timelines" checked style="margin-right: 8px; transform: scale(1.2);"> Timelines
+                        <label style="display: flex !important; align-items: center !important; margin-bottom: 8px !important; cursor: pointer !important;">
+                            <input type="checkbox" id="menu-timelines" checked style="margin-right: 8px !important; transform: scale(1.2) !important;"> Timelines
                         </label>
-                        <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
-                            <input type="checkbox" id="menu-scrolltrigger" checked style="margin-right: 8px; transform: scale(1.2);"> ScrollTrigger
+                        <label style="display: flex !important; align-items: center !important; margin-bottom: 8px !important; cursor: pointer !important;">
+                            <input type="checkbox" id="menu-scrolltrigger" checked style="margin-right: 8px !important; transform: scale(1.2) !important;"> ScrollTrigger
                         </label>
-                        <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
-                            <input type="checkbox" id="menu-events" style="margin-right: 8px; transform: scale(1.2);"> Events
+                        <label style="display: flex !important; align-items: center !important; margin-bottom: 8px !important; cursor: pointer !important;">
+                            <input type="checkbox" id="menu-events" style="margin-right: 8px !important; transform: scale(1.2) !important;"> Events
                         </label>
-                        <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
-                            <input type="checkbox" id="menu-marker-overlay" style="margin-right: 8px; transform: scale(1.2);"> ST Markers (Built-in)
+                        <label style="display: flex !important; align-items: center !important; margin-bottom: 8px !important; cursor: pointer !important;">
+                            <input type="checkbox" id="menu-marker-overlay" style="margin-right: 8px !important; transform: scale(1.2) !important;"> ST Markers (Built-in)
                         </label>
                     </div>
 
@@ -142,14 +144,14 @@
             const updateToggleButton = () => {
                 if (debuggerEnabled) {
                     toggleButton.textContent = 'ON';
-                    toggleButton.style.backgroundColor = 'rgba(0, 150, 0, 0.4)'; // Darker green for ON
-                    toggleButton.style.borderColor = '#00a000'; // Green border
-                    debuggerContainer.style.display = 'flex'; // Show the debugger
+                    toggleButton.style.backgroundColor = 'rgba(0, 150, 0, 0.4) !important'; // Darker green for ON
+                    toggleButton.style.borderColor = '#00a000 !important'; // Green border
+                    debuggerContainer.style.display = 'flex !important'; // Show the debugger
                 } else {
                     toggleButton.textContent = 'OFF';
-                    toggleButton.style.backgroundColor = 'rgba(150, 0, 0, 0.2)'; // Darker red for OFF
-                    toggleButton.style.borderColor = '#a00000'; // Red border
-                    debuggerContainer.style.display = 'none'; // Hide the debugger
+                    toggleButton.style.backgroundColor = 'rgba(150, 0, 0, 0.2) !important'; // Darker red for OFF
+                    toggleButton.style.borderColor = '#a00000 !important'; // Red border
+                    debuggerContainer.style.display = 'none !important'; // Hide the debugger
                 }
             };
 
@@ -179,16 +181,16 @@
 
             // Add event listeners to menu checkboxes to show/hide sections
             debuggerContainer.querySelector('#menu-core-animations').addEventListener('change', (e) => {
-                animationDiv.style.display = e.target.checked ? 'block' : 'none';
+                animationDiv.style.display = e.target.checked ? 'block !important' : 'none !important';
             });
             debuggerContainer.querySelector('#menu-timelines').addEventListener('change', (e) => {
-                timelineDiv.style.display = e.target.checked ? 'block' : 'none';
+                timelineDiv.style.display = e.target.checked ? 'block !important' : 'none !important';
             });
             debuggerContainer.querySelector('#menu-scrolltrigger').addEventListener('change', (e) => {
-                scrollTriggerDiv.style.display = e.target.checked ? 'block' : 'none';
+                scrollTriggerDiv.style.display = e.target.checked ? 'block !important' : 'none !important';
             });
             debuggerContainer.querySelector('#menu-events').addEventListener('change', (e) => {
-                eventsDiv.style.display = e.target.checked ? 'block' : 'none';
+                eventsDiv.style.display = e.target.checked ? 'block !important' : 'none !important';
             });
 
             // --- ScrollTrigger Markers Toggle ---
@@ -199,13 +201,16 @@
                         // Enable GSAP's built-in markers
                         ScrollTrigger.defaults({markers: true});
                         ScrollTrigger.refresh(); // Refresh all ScrollTriggers to apply new default
+                        // Ensure existing markers are visible if they were hidden
+                        document.querySelectorAll('.gsap-marker-scroller-start, .gsap-marker-scroller-end, .gsap-marker-start, .gsap-marker-end').forEach(marker => {
+                            marker.style.display = 'block !important'; // Make visible with !important
+                        });
                     } else {
-                        // Disable markers. GSAP doesn't have a direct method to remove ALL existing markers.
-                        // Setting default to false will only affect new STs.
+                        // Disable markers. Setting default to false will only affect new STs.
                         // For existing ones, we manually hide their DOM elements.
                         ScrollTrigger.defaults({markers: false});
                         document.querySelectorAll('.gsap-marker-scroller-start, .gsap-marker-scroller-end, .gsap-marker-start, .gsap-marker-end').forEach(marker => {
-                            marker.style.display = 'none'; // Hide existing markers
+                            marker.style.display = 'none !important'; // Hide existing markers
                         });
                     }
                 });
@@ -277,10 +282,10 @@
             } else {
                 activeAnimations.forEach((props, tween) => {
                     const target = tween.targets()[0]; // Get the primary target element of the tween
-                    animHTML += `<div style="margin-bottom: 8px; padding: 5px; border: 1px solid #444; border-radius: 4px;">
+                    animHTML += `<div style="margin-bottom: 8px !important; padding: 5px !important; border: 1px solid #444 !important; border-radius: 4px !important;">
                                     <strong>Target: ${getElementIdentifier(target)}</strong>`;
                     for (const key in props) {
-                        animHTML += `<p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">${formatProperty(key, props[key])}</p>`;
+                        animHTML += `<p style="margin-left: 10px !important; margin-top: 2px !important; margin-bottom: 2px !important;">${formatProperty(key, props[key])}</p>`;
                     }
                     animHTML += `</div>`;
                 });
@@ -293,10 +298,10 @@
                 timelineHTML += '<p>No active timelines.</p>';
             } else {
                 activeTimelines.forEach((props, timeline) => {
-                    timelineHTML += `<div style="margin-bottom: 8px; padding: 5px; border: 1px solid #444; border-radius: 4px;">
+                    timelineHTML += `<div style="margin-bottom: 8px !important; padding: 5px !important; border: 1px solid #444 !important; border-radius: 4px !important;">
                                         <strong>Timeline: ${timeline.vars.id || 'Unnamed'}</strong>`; // Use id if set, else 'Unnamed'
                     for (const key in props) {
-                        timelineHTML += `<p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">${formatProperty(key, props[key])}</p>`;
+                        timelineHTML += `<p style="margin-left: 10px !important; margin-top: 2px !important; margin-bottom: 2px !important;">${formatProperty(key, props[key])}</p>`;
                     }
                     animHTML += `</div>`;
                 });
@@ -309,16 +314,16 @@
                 stHTML += '<p>No active ScrollTriggers.</p>';
             } else {
                 activeScrollTriggers.forEach((props, st) => {
-                    stHTML += `<div style="margin-bottom: 8px; padding: 5px; border: 1px solid #444; border-radius: 4px;">
+                    stHTML += `<div style="margin-bottom: 8px !important; padding: 5px !important; border: 1px solid #444 !important; border-radius: 4px !important;">
                                 <strong>Trigger: ${getElementIdentifier(st.trigger)}</strong><br>
                                 Scroller: ${getElementIdentifier(st.scroller)}
-                                <p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">Progress: ${props.currentProgress}</p>
-                                <p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">Start: ${props.start}</p>
-                                <p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">End: ${props.end}</p>
-                                <p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">Scrub: ${props.scrubValue}</p>
-                                <p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">Pin: ${props.pinState}</p>
-                                <p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">Actions: ${props.toggleActions}</p>
-                                <p style="margin-left: 10px; margin-top: 2px; margin-bottom: 2px;">Is Active: ${props.isActive}</p>
+                                <p style="margin-left: 10px !important; margin-top: 2px !important; margin-bottom: 2px !important;">Progress: ${props.currentProgress}</p>
+                                <p style="margin-left: 10px !important; margin-top: 2px !important; margin-bottom: 2px !important;">Start: ${props.start}</p>
+                                <p style="margin-left: 10px !important; margin-top: 2px !important; margin-bottom: 2px !important;">End: ${props.end}</p>
+                                <p style="margin-left: 10px !important; margin-top: 2px !important; margin-bottom: 2px !important;">Scrub: ${props.scrubValue}</p>
+                                <p style="margin-left: 10px !important; margin-top: 2px !important; margin-bottom: 2px !important;">Pin: ${props.pinState}</p>
+                                <p style="margin-left: 10px !important; margin-top: 2px !important; margin-bottom: 2px !important;">Actions: ${props.toggleActions}</p>
+                                <p style="margin-left: 10px !important; margin-top: 2px !important; margin-bottom: 2px !important;">Is Active: ${props.isActive}</p>
                               </div>`;
                 });
             }
@@ -396,21 +401,19 @@
                     }
                 });
 
-                // Dynamically get the current computed CSS values for properties being animated
-                const animatedCSSProps = Object.keys(tween.vars).filter(key => {
-                    // Exclude internal GSAP control properties and callbacks
-                    const excluded = ['onUpdate', 'onComplete', 'onStart', 'onReverseComplete', 'onInterrupt', 'onRepeat', 'onEachComplete', 'delay', 'duration', 'ease', 'repeat', 'yoyo', 'stagger', 'id', 'overwrite', 'callbackScope', 'paused', 'reversed', 'data', 'immediateRender', 'lazy', 'inherit', 'runBackwards', 'simple', 'overwrite', 'callbackScope', 'defaults', 'onToggle', 'scrollTrigger'];
-                    return !excluded.includes(key);
+                // Get current computed values for core transform properties using gsap.getProperty() (optimized)
+                // For other CSS properties, display their target values from tween.vars to avoid performance issues with getComputedStyle()
+                const coreTransformProps = ['x', 'y', 'rotation', 'scaleX', 'scaleY', 'opacity'];
+                Object.keys(tween.vars).forEach(key => {
+                    if (coreTransformProps.includes(key)) {
+                        // For core transforms, get the current live value
+                        props[`current_${key}`] = gsap.getProperty(target, key);
+                    } else if (!['onUpdate', 'onComplete', 'onStart', 'onReverseComplete', 'onInterrupt', 'onRepeat', 'onEachComplete', 'delay', 'duration', 'ease', 'repeat', 'yoyo', 'stagger', 'id', 'overwrite', 'callbackScope', 'paused', 'reversed', 'data', 'immediateRender', 'lazy', 'inherit', 'runBackwards', 'simple', 'overwrite', 'callbackScope', 'defaults', 'onToggle', 'scrollTrigger'].includes(key)) {
+                        // For other CSS properties, display the target value from vars
+                        props[key] = tween.vars[key];
+                    }
                 });
 
-                const computedStyle = getComputedStyle(target); // Get current computed style
-                animatedCSSProps.forEach(prop => {
-                    let val = computedStyle[prop];
-                    if (val && !isNaN(parseFloat(val))) {
-                        val = parseFloat(val); // Convert to number if possible
-                    }
-                    props[`current_${prop}`] = val; // Store with a 'current_' prefix
-                });
 
                 activeAnimations.set(tween, props); // Update the map with current properties
             });
@@ -560,4 +563,3 @@
     });
 
 })();
-
