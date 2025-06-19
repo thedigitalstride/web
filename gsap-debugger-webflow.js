@@ -2,8 +2,8 @@
 
 /**
  * GSAP Live Animation Debugger/Monitor for Webflow Projects
- * Version: 1.0.1 (Semantic Versioning: MAJOR.MINOR.PATCH)
- * - Incremented patch for bug fix (modal resizing) and styling changes.
+ * Version: 1.0.2 (Semantic Versioning: MAJOR.MINOR.PATCH)
+ * - Incremented patch for adding debugger version number to the overlay UI.
  *
  * This script provides an on-screen overlay debugger to help Webflow developers
  * monitor and troubleshoot GSAP animations and ScrollTrigger states in real-time.
@@ -27,6 +27,9 @@
  */
 (function() {
     // --- Configuration and Persistence ---
+    // Define the current version of the debugger
+    const DEBUGGER_VERSION = "1.0.2"; // Added debugger version constant
+
     // URL parameter to activate/deactivate the debugger
     const DEBUGGER_PARAM = 'gsapdbug';
     // Local storage key to remember the debugger's enabled state across sessions
@@ -96,7 +99,7 @@
             // Inner HTML structure of the debugger
             debuggerContainer.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #555;">
-                    <h4 style="margin: 0; color: #ffffff; font-size: 16px;">GSAP Debugger</h4>
+                    <h4 style="margin: 0; color: #ffffff; font-size: 16px;">GSAP Debugger <span style="font-size: 10px; color: #aaa;">v${DEBUGGER_VERSION}</span></h4>
                     <button id="gsap-debugger-toggle" style="background: rgba(255, 255, 255, 0.1); border: 1px solid #777; color: #ffffff; padding: 4px 10px; cursor: pointer; border-radius: 4px; font-size: 12px; transition: background 0.2s, color 0.2s, border-color 0.2s;">ON</button>
                 </div>
                 <div id="gsap-debugger-content" style="flex-grow: 1; overflow-y: auto;">
@@ -557,3 +560,4 @@
     });
 
 })();
+
